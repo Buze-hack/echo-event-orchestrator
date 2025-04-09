@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserSidebar } from "@/components/dashboard/SidebarNav";
+import { SidebarNav } from "@/components/dashboard/SidebarNav";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { EventCard } from "@/components/events/EventCard";
 import { CreateEventModal } from "@/components/events/CreateEventModal";
@@ -106,7 +106,7 @@ export default function Dashboard() {
   
   return (
     <div className="flex flex-col md:flex-row">
-      <UserSidebar />
+      <SidebarNav isAdmin={false} />
       
       <div className="flex-1 p-6 md:p-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
