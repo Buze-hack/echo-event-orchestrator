@@ -11,9 +11,10 @@ interface SidebarNavProps {
     icon?: ReactNode;
   }[];
   className?: string;
+  isAdmin?: boolean;
 }
 
-export function SidebarNav({ items, className }: SidebarNavProps) {
+export function SidebarNav({ items, className, isAdmin }: SidebarNavProps) {
   const location = useLocation();
   const currentPath = location.pathname;
 

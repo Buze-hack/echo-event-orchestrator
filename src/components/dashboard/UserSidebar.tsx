@@ -1,6 +1,6 @@
 
 import { SidebarNav } from "./SidebarNav";
-import { CalendarClock, Home, LayoutDashboard, LineChart, Settings, Users } from "lucide-react";
+import { CalendarClock, CreditCard, Home, LayoutDashboard, LineChart, Settings, Users } from "lucide-react";
 
 const userNavItems = [
   {
@@ -17,6 +17,11 @@ const userNavItems = [
     title: "Analytics",
     href: "/dashboard/analytics",
     icon: <LineChart className="h-4 w-4" />,
+  },
+  {
+    title: "Payments",
+    href: "/dashboard/payments",
+    icon: <CreditCard className="h-4 w-4" />,
   },
   {
     title: "Settings",

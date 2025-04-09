@@ -8,6 +8,7 @@ import { Calendar, Clock, Heart, MapPin, Share, Star, Users } from "lucide-react
 import { EventRating } from "@/components/events/EventRating";
 import { EventComments } from "@/components/events/EventComments";
 import { useToast } from "@/hooks/use-toast";
+import { PaymentModal } from "@/components/payments/PaymentModal";
 
 // Mock event data - in a real app this would come from an API
 const event = {
@@ -21,6 +22,8 @@ const event = {
   image: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80",
   status: "approved",
   rating: 4.5,
+  isPaid: true,
+  price: 2999, // $29.99
   organizer: {
     name: "Tech Innovation Group",
     image: undefined,
@@ -111,6 +114,11 @@ export default function EventDetails() {
                 <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
                   Approved
                 </Badge>
+                {event.isPaid && (
+                  <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100">
+                    Paid Event
+                  </Badge>
+                )}
               </div>
               
               <h1 className="text-3xl md:text-4xl font-bold mb-4">{event.title}</h1>
@@ -123,6 +131,11 @@ export default function EventDetails() {
                 <div className="text-muted-foreground">
                   {event.attendees} attendees
                 </div>
+                {event.isPaid && (
+                  <div className="font-medium text-primary">
+                    ${(event.price / 100).toFixed(2)}
+                  </div>
+                )}
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -168,9 +181,8 @@ export default function EventDetails() {
             </div>
             
             <Tabs defaultValue="about">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-1">
                 <TabsTrigger value="about">About</TabsTrigger>
-                <TabsTrigger value="comments">Comments & Ratings</TabsTrigger>
               </TabsList>
               
               <TabsContent value="about" className="space-y-6 py-4">
@@ -180,16 +192,17 @@ export default function EventDetails() {
                     {event.description}
                   </p>
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="comments" className="py-4">
-                <div className="space-y-8">
-                  <div className="flex flex-col items-center py-6 border-y">
-                    <h3 className="text-xl font-semibold mb-4">Rate This Event</h3>
-                    <EventRating eventId={event.id} />
+
+                <div className="pt-4 border-t">
+                  <h2 className="text-xl font-semibold mb-4">Comments & Ratings</h2>
+                  <div className="space-y-8">
+                    <div className="flex flex-col items-center py-6 border-y">
+                      <h3 className="text-xl font-semibold mb-4">Rate This Event</h3>
+                      <EventRating eventId={event.id} />
+                    </div>
+                    
+                    <EventComments eventId={event.id} comments={mockComments} />
                   </div>
-                  
-                  <EventComments eventId={event.id} comments={mockComments} />
                 </div>
               </TabsContent>
             </Tabs>
@@ -200,9 +213,17 @@ export default function EventDetails() {
             <div className="rounded-lg border bg-card p-6 shadow-sm">
               <h3 className="font-semibold text-xl mb-4">Join this Event</h3>
               <div className="space-y-4">
-                <Button onClick={handleAttend} className="w-full">
-                  <Users className="mr-2 h-4 w-4" /> Attend Event
-                </Button>
+                {event.isPaid ? (
+                  <PaymentModal 
+                    eventId={event.id} 
+                    eventTitle={event.title}
+                    price={event.price}
+                  />
+                ) : (
+                  <Button onClick={handleAttend} className="w-full">
+                    <Users className="mr-2 h-4 w-4" /> Attend Event
+                  </Button>
+                )}
                 <div className="flex gap-4">
                   <Button variant="outline" onClick={handleSave} className="flex-1">
                     <Heart className="mr-2 h-4 w-4" /> Save

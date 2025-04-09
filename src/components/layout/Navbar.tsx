@@ -20,7 +20,7 @@ export function Navbar() {
           <Link to="/" className="flex items-center gap-2">
             <CalendarClock className="h-6 w-6 text-echo-purple" />
             <span className="hidden font-bold sm:inline-block">
-              Echo Events
+              EventHub
             </span>
           </Link>
         </div>
@@ -37,9 +37,6 @@ export function Navbar() {
               Dashboard
             </Link>
           )}
-          <Link to="/about" className="text-sm font-medium hover:text-primary">
-            About
-          </Link>
         </nav>
         
         <div className="flex items-center gap-4">
@@ -84,9 +81,6 @@ export function Navbar() {
                     </Button>
                   </>
                 )}
-                <Link to="/about" className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-md">
-                  About
-                </Link>
                 {!isLoggedIn && (
                   <Button onClick={handleLoginToggle} className="mt-2 gap-2">
                     <LogIn className="h-4 w-4" /> Sign In

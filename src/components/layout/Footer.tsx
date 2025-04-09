@@ -10,7 +10,7 @@ export function Footer() {
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-2">
               <CalendarClock className="h-6 w-6 text-echo-purple" />
-              <span className="font-bold">Echo Events</span>
+              <span className="font-bold">EventHub</span>
             </Link>
             <p className="text-muted-foreground max-w-xs">
               Simplifying event planning and management for individuals and organizations.
@@ -35,11 +35,6 @@ export function Footer() {
                   Dashboard
                 </Link>
               </li>
-              <li>
-                <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">
-                  About
-                </Link>
-              </li>
             </ul>
           </div>
           
@@ -62,7 +57,7 @@ export function Footer() {
         
         <div className="mt-8 pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Echo Events. All rights reserved.
+            © {new Date().getFullYear()} EventHub. All rights reserved.
           </p>
           <div className="flex gap-4">
             <a href="#" className="text-muted-foreground hover:text-foreground">
