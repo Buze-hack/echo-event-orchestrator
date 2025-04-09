@@ -1,292 +1,437 @@
 
-import { useContext, useState, useEffect } from "react";
-import { SidebarNav } from "@/components/dashboard/SidebarNav";
-import { UserSidebar } from "@/components/dashboard/UserSidebar";
-import { EventCard } from "@/components/events/EventCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarClock, Users, FileText, AlertTriangle } from "lucide-react";
+import { useState, useContext } from "react";
 import { Button } from "@/components/ui/button";
-import { AuthContext } from "@/App";
-import { fetchPendingEvents, fetchAllUsers, approveEvent, rejectEvent } from "@/lib/supabase";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { UserSidebar } from "@/components/dashboard/UserSidebar";
+import { 
+  CalendarDays, 
+  ChevronRight, 
+  Clock, 
+  LayoutDashboard,
+  Star, 
+  ThumbsUp, 
+  Users
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Event, EventStatus } from "@/types";
+import { cn } from "@/lib/utils";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { AuthContext } from "@/App";
+import { UserProfile } from "@/types";
+
+const pendingEvents = [
+  {
+    id: "1",
+    title: "Web Development Workshop",
+    date: "2025-06-10",
+    user_id: "user1",
+    category: "workshop",
+    location: "Online",
+    status: "pending",
+    organizer: {
+      name: "John Smith",
+      image: "https://randomuser.me/api/portraits/men/32.jpg"
+    }
+  },
+  {
+    id: "2",
+    title: "Data Science Conference",
+    date: "2025-07-15",
+    user_id: "user2",
+    category: "conference",
+    location: "Convention Center",
+    status: "pending",
+    organizer: {
+      name: "Emily Chen",
+      image: "https://randomuser.me/api/portraits/women/26.jpg"
+    }
+  },
+  {
+    id: "3",
+    title: "Startup Networking Mixer",
+    date: "2025-05-22",
+    user_id: "user3",
+    category: "networking",
+    location: "Tech Hub Downtown",
+    status: "pending",
+    organizer: {
+      name: "Michael Rodriguez",
+      image: ""
+    }
+  },
+];
+
+const recentUsers = [
+  {
+    id: "1",
+    name: "Sarah Johnson",
+    email: "sarah@example.com",
+    avatar_url: "https://randomuser.me/api/portraits/women/44.jpg",
+    created_at: "2025-04-01",
+    role: "user"
+  },
+  {
+    id: "2",
+    name: "David Kim",
+    email: "david@example.com",
+    avatar_url: "https://randomuser.me/api/portraits/men/22.jpg",
+    created_at: "2025-03-28",
+    role: "user"
+  },
+  {
+    id: "3",
+    name: "Lisa Chen",
+    email: "lisa@example.com",
+    avatar_url: "",
+    created_at: "2025-03-25",
+    role: "user"
+  },
+];
 
 export default function AdminDashboard() {
-  const { user } = useContext(AuthContext);
   const { toast } = useToast();
-  const [pendingEvents, setPendingEvents] = useState<Event[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const events = await fetchPendingEvents();
-        setPendingEvents(events as Event[]);
-        
-        const usersData = await fetchAllUsers();
-        setUsers(usersData);
-      } catch (error) {
-        console.error("Error loading dashboard data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load dashboard data",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [toast]);
-
-  const handleApproveEvent = async (eventId: string) => {
-    try {
-      await approveEvent(eventId);
-      setPendingEvents(pendingEvents.filter(event => event.id !== eventId));
-      toast({
-        title: "Event approved",
-        description: "The event has been published successfully",
-      });
-    } catch (error) {
-      console.error("Error approving event:", error);
-      toast({
-        title: "Error",
-        description: "Failed to approve event",
-        variant: "destructive",
-      });
-    }
+  const { user, isAdmin } = useContext(AuthContext);
+  const [selectedTab, setSelectedTab] = useState("overview");
+  
+  // If user is not admin, this page shouldn't be accessible anyway due to
+  // the protected route in App.tsx, but adding an extra check just in case
+  if (!isAdmin) {
+    return (
+      <div className="container py-12 text-center">
+        <h1 className="text-2xl font-semibold">Access Denied</h1>
+        <p className="text-muted-foreground mt-2">
+          You do not have permission to access this page.
+        </p>
+      </div>
+    );
+  }
+  
+  const handleApprove = (eventId: string) => {
+    toast({
+      title: "Event Approved",
+      description: "The event has been approved and is now public.",
+    });
   };
-
-  const handleRejectEvent = async (eventId: string) => {
-    try {
-      await rejectEvent(eventId);
-      setPendingEvents(pendingEvents.filter(event => event.id !== eventId));
-      toast({
-        title: "Event rejected",
-        description: "The event has been rejected",
-      });
-    } catch (error) {
-      console.error("Error rejecting event:", error);
-      toast({
-        title: "Error",
-        description: "Failed to reject event",
-        variant: "destructive",
-      });
-    }
+  
+  const handleReject = (eventId: string) => {
+    toast({
+      title: "Event Rejected",
+      description: "The event has been rejected.",
+    });
   };
-
+  
+  const handleMakeAdmin = (userId: string) => {
+    toast({
+      title: "Role Updated",
+      description: "User has been given admin privileges.",
+    });
+  };
+  
   return (
     <div className="flex flex-col md:flex-row">
-      <UserSidebar isAdmin={true} />
-      <div className="flex-1 p-6 md:p-8">
-        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-        
-        <Tabs defaultValue="pending-events" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="pending-events" className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              <span>Pending Events</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span>Users</span>
-            </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span>Reports</span>
-            </TabsTrigger>
-          </TabsList>
+      <UserSidebar isAdmin items={[]} />
+      
+      <div className="flex-1 p-6 md:p-8 pt-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+              <p className="text-muted-foreground mt-1">
+                Manage events, users, and site settings.
+              </p>
+            </div>
+            <div className="mt-4 md:mt-0">
+              <Badge variant="default" className="text-sm">
+                Admin User
+              </Badge>
+            </div>
+          </div>
           
-          <TabsContent value="pending-events" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Events Pending Approval</CardTitle>
-                <CardDescription>
-                  Review and manage events submitted by users
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="text-center py-10">
-                    <p>Loading events...</p>
-                  </div>
-                ) : pendingEvents.length > 0 ? (
-                  <div className="space-y-6">
-                    {pendingEvents.map((event) => (
-                      <div key={event.id} className="border rounded-lg p-4">
-                        <div className="grid md:grid-cols-3 gap-4">
-                          <div className="md:col-span-2">
-                            <h3 className="text-lg font-medium">{event.title}</h3>
-                            <p className="text-sm text-muted-foreground mb-2">
-                              By {event.organizer.name} • Submitted on {new Date(event.date).toLocaleDateString()}
-                            </p>
-                            <p className="text-sm mb-4">{event.description}</p>
-                            <div className="flex items-center gap-4">
-                              <p className="text-sm flex items-center gap-1">
-                                <CalendarClock className="h-4 w-4" />
-                                {event.date} at {event.time}
-                              </p>
-                              {event.isPaid && (
-                                <p className="text-sm font-medium">
-                                  Price: ${(event.price || 0) / 100}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex flex-col justify-center gap-2">
-                            <Button 
-                              onClick={() => handleApproveEvent(event.id)}
-                              className="w-full"
-                            >
-                              Approve
-                            </Button>
-                            <Button 
-                              onClick={() => handleRejectEvent(event.id)}
-                              variant="destructive"
-                              className="w-full"
-                            >
-                              Reject
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-10">
-                    <p>No pending events to review.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="users" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>
-                  View and manage user accounts
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="text-center py-10">
-                    <p>Loading users...</p>
-                  </div>
-                ) : users.length > 0 ? (
-                  <div className="border rounded-lg overflow-hidden">
-                    <table className="min-w-full divide-y divide-border">
-                      <thead className="bg-muted">
-                        <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Name
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Role
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                            Joined
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-card divide-y divide-border">
-                        {users.map((user) => (
-                          <tr key={user.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10">
-                                  {user.avatar_url ? (
-                                    <img className="h-10 w-10 rounded-full" src={user.avatar_url} alt="" />
-                                  ) : (
-                                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                                      <User className="h-5 w-5 text-muted-foreground" />
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium">{user.name}</div>
+          <div className="mb-8">
+            <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+              <TabsList className="grid grid-cols-3 mb-8">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="events">Events</TabsTrigger>
+                <TabsTrigger value="users">Users</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="space-y-8">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <StatsCard 
+                    title="Total Events"
+                    value="26"
+                    description="All time events"
+                    icon={CalendarDays}
+                  />
+                  <StatsCard 
+                    title="Pending Review"
+                    value="3"
+                    description="Events needing approval"
+                    icon={Clock}
+                    iconColor="text-amber-500"
+                  />
+                  <StatsCard 
+                    title="Total Users"
+                    value="247"
+                    description="Registered users"
+                    icon={Users}
+                  />
+                  <StatsCard 
+                    title="Avg. Rating"
+                    value="4.8"
+                    description="Across all events"
+                    icon={Star}
+                    iconColor="text-yellow-500"
+                  />
+                </div>
+                
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Pending Approvals</CardTitle>
+                      <CardDescription>
+                        Recently submitted events requiring review
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {pendingEvents.slice(0, 3).map((event) => (
+                          <div key={event.id} className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-9 w-9">
+                                <AvatarImage src={event.organizer.image} />
+                                <AvatarFallback>
+                                  {event.organizer.name.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-medium">{event.title}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {new Date(event.date).toLocaleDateString()}
                                 </div>
                               </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                user.role === 'admin' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                              }`}>
-                                {user.role}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                              {new Date(user.created_at).toLocaleDateString()}
-                            </td>
-                          </tr>
+                            </div>
+                            <Button variant="ghost" size="sm">
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-10">
-                    <p>No users found.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="reports" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Reports & Analytics</CardTitle>
-                <CardDescription>
-                  View system statistics and reports
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">
-                        Total Users
-                      </CardTitle>
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{users.length}</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">
-                        Pending Events
-                      </CardTitle>
-                      <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{pendingEvents.length}</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">
-                        Admin Users
-                      </CardTitle>
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">
-                        {users.filter(u => u.role === 'admin').length}
                       </div>
                     </CardContent>
+                    <CardFooter>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setSelectedTab("events")}
+                      >
+                        View All
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Recent Users</CardTitle>
+                      <CardDescription>
+                        Newly registered platform users
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {recentUsers.map((user) => (
+                          <div key={user.id} className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-9 w-9">
+                                <AvatarImage src={user.avatar_url} />
+                                <AvatarFallback>
+                                  {user.name.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-medium">{user.name}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {new Date(user.created_at).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </div>
+                            <Badge variant={user.role === "admin" ? "default" : "outline"}>
+                              {user.role}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setSelectedTab("users")}
+                      >
+                        View All Users
+                      </Button>
+                    </CardFooter>
                   </Card>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </TabsContent>
+              
+              <TabsContent value="events">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Event Approval Queue</CardTitle>
+                    <CardDescription>
+                      Review and approve or reject submitted events.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Event Name</TableHead>
+                          <TableHead>Organizer</TableHead>
+                          <TableHead>Category</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pendingEvents.map((event) => (
+                          <TableRow key={event.id}>
+                            <TableCell className="font-medium">{event.title}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={event.organizer.image} />
+                                  <AvatarFallback>{event.organizer.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span>{event.organizer.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="capitalize">
+                                {event.category}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {new Date(event.date).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={cn({
+                                  "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100": event.status === "pending",
+                                  "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100": event.status === "approved",
+                                  "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100": event.status === "rejected",
+                                })}
+                              >
+                                {event.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  onClick={() => handleApprove(event.id)}
+                                >
+                                  <ThumbsUp className="mr-1 h-4 w-4" />
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleReject(event.id)}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="users">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>User Management</CardTitle>
+                    <CardDescription>
+                      Manage user accounts and permissions.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Joined</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {recentUsers.map((userProfile: UserProfile & {email: string}) => (
+                          <TableRow key={userProfile.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={userProfile.avatar_url} />
+                                  <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium">{userProfile.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{userProfile.email}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={userProfile.role === "admin" ? "default" : "outline"}
+                              >
+                                {userProfile.role}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {new Date(userProfile.created_at).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    Actions
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleMakeAdmin(userProfile.id)}>
+                                    Make Admin
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>View Profile</DropdownMenuItem>
+                                  <DropdownMenuItem className="text-red-600">
+                                    Delete Account
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   );

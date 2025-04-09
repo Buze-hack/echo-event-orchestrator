@@ -19,7 +19,10 @@ export interface Event {
     name: string;
     image?: string;
   };
+  paymentMethods?: PaymentMethod[];
 }
+
+export type PaymentMethod = "stripe" | "mpesa";
 
 export interface UserProfile {
   id: string;
@@ -53,4 +56,17 @@ export interface EventRating {
   created_at: string;
   user_id: string;
   event_id: string;
+}
+
+export interface MpesaPaymentRequest {
+  phoneNumber: string;
+  amount: number;
+  eventId: string;
+  userId: string;
+}
+
+export interface MpesaPaymentResponse {
+  success: boolean;
+  transactionId?: string;
+  message: string;
 }

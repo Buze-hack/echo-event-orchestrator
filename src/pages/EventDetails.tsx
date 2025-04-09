@@ -9,6 +9,7 @@ import { EventRating } from "@/components/events/EventRating";
 import { EventComments } from "@/components/events/EventComments";
 import { useToast } from "@/hooks/use-toast";
 import { PaymentModal } from "@/components/payments/PaymentModal";
+import { MpesaPaymentModal } from "@/components/payments/MpesaPaymentModal";
 
 // Mock event data - in a real app this would come from an API
 const event = {
@@ -29,6 +30,7 @@ const event = {
     image: undefined,
   },
   attendees: 350,
+  paymentMethods: ["stripe", "mpesa"]
 };
 
 // Mock comments
@@ -180,32 +182,24 @@ export default function EventDetails() {
               </div>
             </div>
             
-            <Tabs defaultValue="about">
-              <TabsList className="grid w-full grid-cols-1">
-                <TabsTrigger value="about">About</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="about" className="space-y-6 py-4">
-                <div>
-                  <h2 className="text-xl font-semibold mb-4">About This Event</h2>
-                  <p className="text-muted-foreground whitespace-pre-line">
-                    {event.description}
-                  </p>
-                </div>
+            <div>
+              <h2 className="text-xl font-semibold mb-4">About This Event</h2>
+              <p className="text-muted-foreground whitespace-pre-line">
+                {event.description}
+              </p>
+            </div>
 
-                <div className="pt-4 border-t">
-                  <h2 className="text-xl font-semibold mb-4">Comments & Ratings</h2>
-                  <div className="space-y-8">
-                    <div className="flex flex-col items-center py-6 border-y">
-                      <h3 className="text-xl font-semibold mb-4">Rate This Event</h3>
-                      <EventRating eventId={event.id} />
-                    </div>
-                    
-                    <EventComments eventId={event.id} comments={mockComments} />
-                  </div>
+            <div className="pt-4 border-t">
+              <h2 className="text-xl font-semibold mb-4">Comments & Ratings</h2>
+              <div className="space-y-8">
+                <div className="flex flex-col items-center py-6 border-y">
+                  <h3 className="text-xl font-semibold mb-4">Rate This Event</h3>
+                  <EventRating eventId={event.id} />
                 </div>
-              </TabsContent>
-            </Tabs>
+                
+                <EventComments eventId={event.id} comments={mockComments} />
+              </div>
+            </div>
           </div>
           
           {/* Sidebar */}
@@ -214,11 +208,18 @@ export default function EventDetails() {
               <h3 className="font-semibold text-xl mb-4">Join this Event</h3>
               <div className="space-y-4">
                 {event.isPaid ? (
-                  <PaymentModal 
-                    eventId={event.id} 
-                    eventTitle={event.title}
-                    price={event.price}
-                  />
+                  <div className="space-y-4">
+                    <PaymentModal 
+                      eventId={event.id} 
+                      eventTitle={event.title}
+                      price={event.price}
+                    />
+                    <MpesaPaymentModal 
+                      eventId={event.id} 
+                      eventTitle={event.title}
+                      price={event.price}
+                    />
+                  </div>
                 ) : (
                   <Button onClick={handleAttend} className="w-full">
                     <Users className="mr-2 h-4 w-4" /> Attend Event

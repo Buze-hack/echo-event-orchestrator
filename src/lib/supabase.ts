@@ -1,6 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
+import { MpesaPaymentRequest, MpesaPaymentResponse } from '@/types';
 
 // Replace with your Supabase project URL and anon key from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co';
@@ -238,6 +239,27 @@ export async function createPaymentIntent(eventId: string, amount: number) {
   }
   
   return data;
+}
+
+export async function initiateMpesaPayment(paymentRequest: MpesaPaymentRequest): Promise<MpesaPaymentResponse> {
+  try {
+    const { data, error } = await supabase.functions.invoke('mpesa-payment', {
+      body: paymentRequest,
+    });
+    
+    if (error) {
+      console.error('Error initiating M-Pesa payment:', error);
+      throw error;
+    }
+    
+    return data as MpesaPaymentResponse;
+  } catch (error) {
+    console.error('Error processing M-Pesa payment:', error);
+    return {
+      success: false,
+      message: 'Failed to process M-Pesa payment. Please try again.'
+    };
+  }
 }
 
 export async function registerEventAttendee(eventId: string, userId: string, paymentId?: string, paymentStatus?: string) {

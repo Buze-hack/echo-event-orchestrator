@@ -19,6 +19,7 @@ export interface Database {
           price: number;
           rating: number;
           attendees: number;
+          payment_methods?: string[];
         };
         Insert: {
           id?: string;
@@ -36,6 +37,7 @@ export interface Database {
           price?: number;
           rating?: number;
           attendees?: number;
+          payment_methods?: string[];
         };
         Update: {
           id?: string;
@@ -53,6 +55,7 @@ export interface Database {
           price?: number;
           rating?: number;
           attendees?: number;
+          payment_methods?: string[];
         };
       };
       profiles: {
@@ -86,6 +89,7 @@ export interface Database {
           user_id: string;
           payment_status?: "completed" | "pending" | "failed";
           payment_id?: string;
+          payment_method?: "stripe" | "mpesa";
         };
         Insert: {
           id?: string;
@@ -94,6 +98,7 @@ export interface Database {
           user_id: string;
           payment_status?: "completed" | "pending" | "failed";
           payment_id?: string;
+          payment_method?: "stripe" | "mpesa";
         };
         Update: {
           id?: string;
@@ -102,6 +107,7 @@ export interface Database {
           user_id?: string;
           payment_status?: "completed" | "pending" | "failed";
           payment_id?: string;
+          payment_method?: "stripe" | "mpesa";
         };
       };
       comments: {
@@ -146,6 +152,38 @@ export interface Database {
           id?: string;
           created_at?: string;
           value?: number;
+          event_id?: string;
+          user_id?: string;
+        };
+      };
+      mpesa_transactions: {
+        Row: {
+          id: string;
+          created_at: string;
+          phone_number: string;
+          amount: number;
+          transaction_id: string;
+          status: "pending" | "completed" | "failed";
+          event_id: string;
+          user_id: string;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          phone_number: string;
+          amount: number;
+          transaction_id?: string;
+          status?: "pending" | "completed" | "failed";
+          event_id: string;
+          user_id: string;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          phone_number?: string;
+          amount?: number;
+          transaction_id?: string;
+          status?: "pending" | "completed" | "failed";
           event_id?: string;
           user_id?: string;
         };

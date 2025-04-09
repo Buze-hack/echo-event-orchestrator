@@ -1,255 +1,306 @@
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SidebarNav } from "@/components/dashboard/SidebarNav";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { EventCard } from "@/components/events/EventCard";
+import { SidebarNav } from "@/components/dashboard/SidebarNav";
+import { UserSidebar } from "@/components/dashboard/UserSidebar";
+import { 
+  CalendarDays, 
+  ChevronRight, 
+  Clock, 
+  LineChart, 
+  Plus, 
+  Star, 
+  Users
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { CreateEventModal } from "@/components/events/CreateEventModal";
-import { CalendarClock, LineChart, Loader2, Star, Ticket, Users } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AuthContext } from "@/App";
+import { EventStatus } from "@/types";
 
-// Mock data
-const myEvents = [
-  {
-    id: "5",
-    title: "Design Workshop 2025",
-    date: "2025-08-15",
-    time: "02:00 PM",
-    location: "Creative Studios, Austin",
-    category: "workshop",
-    image: "https://images.unsplash.com/photo-1561489413-985b06da5bee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80",
-    status: "pending",
-    rating: 0,
-    attendees: 0,
-  },
-  {
-    id: "6",
-    title: "Community Meetup",
-    date: "2025-07-10",
-    time: "06:30 PM",
-    location: "Central Library, Boston",
-    category: "networking",
-    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80",
-    status: "approved",
-    rating: 4.2,
-    attendees: 45,
-  },
-  {
-    id: "7",
-    title: "Product Launch Party",
-    date: "2025-06-20",
-    time: "07:00 PM",
-    location: "Tech Hub, Seattle",
-    category: "networking",
-    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80",
-    status: "approved",
-    rating: 4.6,
-    attendees: 120,
-  },
-];
-
-const attendingEvents = [
+// Mock data - in a real app, this would come from an API
+const userEvents = [
   {
     id: "1",
-    title: "Tech Innovation Summit",
+    title: "JavaScript Fundamentals Workshop",
     date: "2025-05-15",
-    time: "09:00 AM",
-    location: "Downtown Convention Center, San Francisco",
-    category: "conference",
-    image: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80",
-    status: "approved",
-    rating: 4.5,
-    attendees: 350,
+    time: "2:00 PM - 4:00 PM",
+    attendees: 28,
+    rating: 4.7,
+    status: "approved" as EventStatus,
   },
   {
     id: "2",
-    title: "Summer Music Festival",
-    date: "2025-07-20",
-    time: "04:00 PM",
-    location: "Central Park, New York",
-    category: "music",
-    image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80",
-    status: "approved",
-    rating: 4.8,
-    attendees: 1200,
+    title: "React State Management Deep Dive",
+    date: "2025-06-10",
+    time: "10:00 AM - 12:00 PM",
+    attendees: 42,
+    rating: 4.9,
+    status: "approved" as EventStatus,
+  },
+  {
+    id: "3",
+    title: "Building Responsive Layouts with Tailwind",
+    date: "2025-07-05",
+    time: "1:00 PM - 3:30 PM",
+    attendees: 0,
+    rating: 0,
+    status: "pending" as EventStatus,
   },
 ];
 
-// Mock data for charts
-const monthlyStats = [
-  { name: "Jan", events: 2, attendees: 85 },
-  { name: "Feb", events: 3, attendees: 140 },
-  { name: "Mar", events: 1, attendees: 60 },
-  { name: "Apr", events: 4, attendees: 230 },
-  { name: "May", events: 2, attendees: 120 },
-  { name: "Jun", events: 3, attendees: 180 },
+const userRegistrations = [
+  {
+    id: "1",
+    eventName: "Tech Innovation Summit",
+    date: "2025-05-20",
+    time: "9:00 AM - 6:00 PM",
+    organizer: "Tech Innovation Group",
+    ticket: "Regular",
+    price: 2999, // cents
+  },
+  {
+    id: "2",
+    eventName: "AI Conference 2025",
+    date: "2025-06-15",
+    time: "10:00 AM - 4:00 PM",
+    organizer: "AI Research Institute",
+    ticket: "Early Bird",
+    price: 4999, // cents
+  },
 ];
 
+const analyticsData = {
+  eventViews: [120, 150, 180, 220, 250, 280, 350],
+  registrations: [10, 15, 20, 25, 30, 35, 42],
+  days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+};
+
 export default function Dashboard() {
-  const { toast } = useToast();
-  const [refreshing, setRefreshing] = useState(false);
-  
-  const handleRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-      toast({
-        title: "Dashboard Updated",
-        description: "Your dashboard has been refreshed with the latest data.",
-      });
-    }, 1000);
-  };
+  const [activeTab, setActiveTab] = useState("overview");
+  const { user, isAdmin } = useContext(AuthContext);
   
   return (
     <div className="flex flex-col md:flex-row">
-      <SidebarNav isAdmin={false} />
+      <UserSidebar isAdmin={false} />
       
-      <div className="flex-1 p-6 md:p-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold gradient-heading">User Dashboard</h1>
-            <p className="text-muted-foreground">Manage your events and track performance</p>
+      <div className="flex-1 p-6 md:p-8 pt-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+              <p className="text-muted-foreground mt-1">
+                Manage your events, registrations, and profile.
+              </p>
+            </div>
+            <div className="mt-4 md:mt-0">
+              <CreateEventModal />
+            </div>
           </div>
           
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
-              {refreshing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing
-                </>
-              ) : (
-                "Refresh"
-              )}
-            </Button>
-            <CreateEventModal />
+          <div className="mb-8">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-3 mb-8">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="myEvents">My Events</TabsTrigger>
+                <TabsTrigger value="registered">Registered Events</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="space-y-8">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <StatsCard 
+                    title="My Events"
+                    value={userEvents.length.toString()}
+                    description="Events you've created"
+                    icon={CalendarDays}
+                  />
+                  <StatsCard 
+                    title="Registered"
+                    value={userRegistrations.length.toString()}
+                    description="Events you're attending"
+                    icon={Clock}
+                  />
+                  <StatsCard 
+                    title="Total Attendees"
+                    value="70"
+                    description="Across all your events"
+                    icon={Users}
+                  />
+                  <StatsCard 
+                    title="Avg. Rating"
+                    value="4.8"
+                    description="For your events"
+                    icon={Star}
+                    iconColor="text-yellow-500"
+                  />
+                </div>
+                
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Your Events</CardTitle>
+                      <CardDescription>
+                        Events you have created or are managing.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {userEvents.slice(0, 3).map((event) => (
+                          <div key={event.id} className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{event.title}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {new Date(event.date).toLocaleDateString()} • {event.time}
+                              </div>
+                            </div>
+                            <Badge
+                              className={cn({
+                                "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100": event.status === "pending",
+                                "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100": event.status === "approved",
+                                "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100": event.status === "rejected",
+                              })}
+                            >
+                              {event.status}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setActiveTab("myEvents")}
+                      >
+                        View All Events
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Event Analytics</CardTitle>
+                      <CardDescription>
+                        Views and registrations for your events.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[250px] flex items-center justify-center">
+                      <LineChart className="h-16 w-16 text-muted-foreground" />
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="myEvents">
+                <Card>
+                  <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div>
+                      <CardTitle>My Events</CardTitle>
+                      <CardDescription>
+                        All events you have created or are managing.
+                      </CardDescription>
+                    </div>
+                    <Button className="mt-4 sm:mt-0 flex items-center gap-2">
+                      <Plus className="h-4 w-4" /> Create Event
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Event Name</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Time</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Attendees</TableHead>
+                          <TableHead>Rating</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {userEvents.map((event) => (
+                          <TableRow key={event.id}>
+                            <TableCell className="font-medium">{event.title}</TableCell>
+                            <TableCell>
+                              {new Date(event.date).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>{event.time}</TableCell>
+                            <TableCell>
+                              <Badge
+                                className={cn({
+                                  "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100": event.status === "pending",
+                                  "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100": event.status === "approved",
+                                  "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100": event.status === "rejected",
+                                })}
+                              >
+                                {event.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{event.attendees}</TableCell>
+                            <TableCell>
+                              {event.rating > 0 ? (
+                                <div className="flex items-center">
+                                  {event.rating}
+                                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 ml-1" />
+                                </div>
+                              ) : (
+                                "No ratings"
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="registered">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Registered Events</CardTitle>
+                    <CardDescription>
+                      Events you are attending or have registered for.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Event Name</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Time</TableHead>
+                          <TableHead>Organizer</TableHead>
+                          <TableHead>Ticket</TableHead>
+                          <TableHead>Price</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {userRegistrations.map((reg) => (
+                          <TableRow key={reg.id}>
+                            <TableCell className="font-medium">{reg.eventName}</TableCell>
+                            <TableCell>
+                              {new Date(reg.date).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>{reg.time}</TableCell>
+                            <TableCell>{reg.organizer}</TableCell>
+                            <TableCell>{reg.ticket}</TableCell>
+                            <TableCell>
+                              ${(reg.price / 100).toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatsCard
-            title="Total Events"
-            value="3"
-            description="Created by you"
-            icon={<CalendarClock className="h-5 w-5" />}
-            trend={{ value: 33, isPositive: true }}
-          />
-          <StatsCard
-            title="Total Attendees"
-            value="165"
-            description="Across all events"
-            icon={<Users className="h-5 w-5" />}
-            trend={{ value: 22, isPositive: true }}
-          />
-          <StatsCard
-            title="Average Rating"
-            value="4.4"
-            description="From 87 ratings"
-            icon={<Star className="h-5 w-5" />}
-            trend={{ value: 5, isPositive: true }}
-          />
-          <StatsCard
-            title="Tickets Sold"
-            value="152"
-            description="$3,840 revenue"
-            icon={<Ticket className="h-5 w-5" />}
-            trend={{ value: 18, isPositive: true }}
-          />
-        </div>
-        
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <h2 className="text-xl font-semibold mb-4">Monthly Performance</h2>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={monthlyStats}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis yAxisId="left" orientation="left" stroke="#3538CD" />
-                  <YAxis yAxisId="right" orientation="right" stroke="#6941C6" />
-                  <Tooltip />
-                  <Bar yAxisId="left" dataKey="events" fill="#3538CD" name="Events" />
-                  <Bar yAxisId="right" dataKey="attendees" fill="#6941C6" name="Attendees" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Tabs defaultValue="my-events">
-          <TabsList className="mb-6">
-            <TabsTrigger value="my-events">My Events</TabsTrigger>
-            <TabsTrigger value="attending">Attending</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="my-events">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  id={event.id}
-                  title={event.title}
-                  date={new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                  time={event.time}
-                  location={event.location}
-                  category={event.category}
-                  image={event.image}
-                  status={event.status}
-                  rating={event.rating}
-                  attendees={event.attendees}
-                />
-              ))}
-              <Card className="flex flex-col items-center justify-center p-6 border-dashed">
-                <div className="mb-4 rounded-full bg-primary/10 p-3">
-                  <CalendarClock className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Create New Event</h3>
-                <p className="text-center text-muted-foreground mb-4">
-                  Share your events with the community
-                </p>
-                <CreateEventModal />
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="attending">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {attendingEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  id={event.id}
-                  title={event.title}
-                  date={new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                  time={event.time}
-                  location={event.location}
-                  category={event.category}
-                  image={event.image}
-                  status={event.status}
-                  rating={event.rating}
-                  attendees={event.attendees}
-                />
-              ))}
-              <Card className="flex flex-col items-center justify-center p-6 border-dashed">
-                <div className="mb-4 rounded-full bg-primary/10 p-3">
-                  <Users className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Find More Events</h3>
-                <p className="text-center text-muted-foreground mb-4">
-                  Discover and join exciting events
-                </p>
-                <Button asChild>
-                  <Link to="/events">Browse Events</Link>
-                </Button>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
       </div>
     </div>
   );
