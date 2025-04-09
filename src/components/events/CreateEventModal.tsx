@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,6 +18,8 @@ import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form";
+import { createEvent } from "@/lib/supabase";
+import { AuthContext } from "@/App";
 
 interface FormData {
   title: string;
@@ -33,7 +35,9 @@ interface FormData {
 
 export function CreateEventModal() {
   const { toast } = useToast();
+  const { user } = useContext(AuthContext);
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
@@ -59,32 +63,65 @@ export function CreateEventModal() {
     setFormData((prev) => ({ ...prev, isPaid: checked }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Here you would typically send this data to your backend API
-    console.log("Event data submitted:", {
-      ...formData,
-      price: formData.isPaid ? parseInt(formData.price) * 100 : 0 // Convert to cents for Stripe
-    });
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to create an event",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    toast({
-      title: "Event Created",
-      description: "Your event has been submitted for approval.",
-    });
+    setIsSubmitting(true);
     
-    setOpen(false);
-    setFormData({
-      title: "",
-      description: "",
-      date: "",
-      time: "",
-      location: "",
-      category: "",
-      image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80",
-      isPaid: false,
-      price: "0",
-    });
+    try {
+      const eventData = {
+        title: formData.title,
+        description: formData.description,
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        category: formData.category,
+        image: formData.image,
+        status: "pending" as const,
+        user_id: user.id,
+        isPaid: formData.isPaid,
+        price: formData.isPaid ? parseInt(formData.price) * 100 : 0, // Convert to cents for Stripe
+        rating: 0,
+        attendees: 0
+      };
+      
+      await createEvent(eventData);
+      
+      toast({
+        title: "Event Created",
+        description: "Your event has been submitted for approval.",
+      });
+      
+      setOpen(false);
+      setFormData({
+        title: "",
+        description: "",
+        date: "",
+        time: "",
+        location: "",
+        category: "",
+        image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80",
+        isPaid: false,
+        price: "0",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create event. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -112,6 +149,7 @@ export function CreateEventModal() {
               onChange={handleChange}
               placeholder="Summer Music Festival"
               required
+              disabled={isSubmitting}
             />
           </div>
           
@@ -125,6 +163,7 @@ export function CreateEventModal() {
               placeholder="Describe your event..."
               className="min-h-[100px]"
               required
+              disabled={isSubmitting}
             />
           </div>
           
@@ -138,6 +177,7 @@ export function CreateEventModal() {
                 onChange={handleChange}
                 type="date"
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -149,6 +189,7 @@ export function CreateEventModal() {
                 onChange={handleChange}
                 type="time"
                 required
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -162,6 +203,7 @@ export function CreateEventModal() {
               onChange={handleChange}
               placeholder="123 Main St, City, Country"
               required
+              disabled={isSubmitting}
             />
           </div>
           
@@ -170,6 +212,7 @@ export function CreateEventModal() {
             <Select
               onValueChange={(value) => handleSelectChange("category", value)}
               value={formData.category}
+              disabled={isSubmitting}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a category" />
@@ -198,6 +241,7 @@ export function CreateEventModal() {
               <Switch
                 checked={formData.isPaid}
                 onCheckedChange={handleSwitchChange}
+                disabled={isSubmitting}
               />
             </FormControl>
           </FormItem>
@@ -215,6 +259,7 @@ export function CreateEventModal() {
                 step="0.01"
                 placeholder="29.99"
                 required={formData.isPaid}
+                disabled={isSubmitting}
               />
             </div>
           )}
@@ -227,6 +272,7 @@ export function CreateEventModal() {
               value={formData.image}
               onChange={handleChange}
               placeholder="https://example.com/image.jpg"
+              disabled={isSubmitting}
             />
             <p className="text-sm text-muted-foreground">
               Enter a URL for your event image or leave as is for a default image.
@@ -234,7 +280,9 @@ export function CreateEventModal() {
           </div>
           
           <DialogFooter className="pt-4">
-            <Button type="submit">Submit for Approval</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit for Approval"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

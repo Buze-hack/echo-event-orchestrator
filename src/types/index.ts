@@ -20,3 +20,37 @@ export interface Event {
     image?: string;
   };
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  avatar_url?: string;
+  role: "user" | "admin";
+  created_at: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  profile?: UserProfile;
+}
+
+export interface EventComment {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  event_id: string;
+  profiles?: {
+    name: string;
+    avatar_url?: string;
+  };
+}
+
+export interface EventRating {
+  id: string;
+  value: number;
+  created_at: string;
+  user_id: string;
+  event_id: string;
+}
