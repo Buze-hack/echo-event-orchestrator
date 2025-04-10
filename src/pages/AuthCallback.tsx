@@ -27,22 +27,32 @@ export default function AuthCallback() {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', data.session.user.id);
+          .eq('id', data.session.user.id)
+          .single();
         
         // If no profile exists, create one
-        if (!profileData?.length && !profileError) {
+        if (profileError && profileError.code === 'PGRST116') {
           const userDetails = data.session.user.user_metadata || {};
           
           await supabase.from('profiles').insert([{
             id: data.session.user.id,
-            name: userDetails.name || userDetails.full_name || 'User',
+            name: userDetails.name || userDetails.full_name || userDetails.email?.split('@')[0] || 'User',
             avatar_url: userDetails.avatar_url || '',
             role: 'user' // Default role
           }]);
+          
+          // Fetch the profile after creation
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.session.user.id)
+            .single();
+            
+          profileData = newProfile;
         }
 
         // Check if user is admin and redirect accordingly
-        if (profileData && profileData.length > 0 && profileData[0].role === 'admin') {
+        if (profileData && profileData.role === 'admin') {
           navigate('/admin');
         } else {
           navigate('/dashboard');

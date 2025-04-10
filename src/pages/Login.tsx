@@ -39,6 +39,29 @@ export default function Login() {
       
       if (error) throw error;
       
+      // Check if user has a profile, if not create one
+      if (data.user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (profileError && profileError.code === 'PGRST116') {
+          // Profile doesn't exist, create one
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert([{
+              id: data.user.id,
+              name: data.user.user_metadata.name || data.user.email?.split('@')[0] || 'User',
+              avatar_url: data.user.user_metadata.avatar_url || '',
+              role: 'user' // Default role
+            }]);
+            
+          if (insertError) throw insertError;
+        }
+      }
+      
       toast({
         title: "Welcome back!",
         description: "You've successfully logged in.",

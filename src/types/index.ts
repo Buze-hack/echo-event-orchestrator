@@ -29,7 +29,7 @@ export interface UserProfile {
   name: string;
   avatar_url?: string;
   role: "user" | "admin";
-  created_at: string;
+  created_at?: string;
 }
 
 export interface User {

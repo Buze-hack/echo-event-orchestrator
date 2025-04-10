@@ -52,6 +52,7 @@ export default function Signup() {
     try {
       setIsLoading(true);
       
+      // Create the user in Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -73,7 +74,7 @@ export default function Signup() {
               id: data.user.id, 
               name, 
               avatar_url: '', 
-              role: 'user'
+              role: 'user' as const
             }
           ]);
         
