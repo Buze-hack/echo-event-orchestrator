@@ -31,6 +31,7 @@ export default function AuthCallback() {
           .single();
         
         // If no profile exists, create one
+        let userProfile = profileData;
         if (profileError && profileError.code === 'PGRST116') {
           const userDetails = data.session.user.user_metadata || {};
           
@@ -48,11 +49,11 @@ export default function AuthCallback() {
             .eq('id', data.session.user.id)
             .single();
             
-          profileData = newProfile;
+          userProfile = newProfile;
         }
 
         // Check if user is admin and redirect accordingly
-        if (profileData && profileData.role === 'admin') {
+        if (userProfile && userProfile.role === 'admin') {
           navigate('/admin');
         } else {
           navigate('/dashboard');
