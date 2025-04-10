@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { FcGoogle } from "react-icons/fc";
-import { Mail, KeyRound, User } from "lucide-react";
+import { Mail, KeyRound, User, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 
@@ -16,11 +16,13 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setConnectionError(null);
     
     if (!name || !email || !password || !confirmPassword) {
       toast({
@@ -63,7 +65,19 @@ export default function Signup() {
         },
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("fetch failed") || error.message.includes("network")) {
+          setConnectionError("Failed to connect to authentication service. Please check your Supabase credentials.");
+          console.error("Supabase connection error:", error);
+        } else {
+          toast({
+            title: "Signup failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+        return;
+      }
 
       // Create a profile entry for the new user
       if (data.user) {
@@ -78,7 +92,19 @@ export default function Signup() {
             }
           ]);
         
-        if (profileError) throw profileError;
+        if (profileError) {
+          if (profileError.message.includes("fetch failed") || profileError.message.includes("network")) {
+            setConnectionError("Failed to connect to database service. Please check your Supabase credentials.");
+            console.error("Supabase connection error:", profileError);
+          } else {
+            toast({
+              title: "Profile creation failed",
+              description: profileError.message,
+              variant: "destructive",
+            });
+          }
+          return;
+        }
       }
       
       toast({
@@ -101,6 +127,7 @@ export default function Signup() {
   const handleGoogleSignup = async () => {
     try {
       setIsLoading(true);
+      setConnectionError(null);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -109,7 +136,18 @@ export default function Signup() {
         },
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("fetch failed") || error.message.includes("network")) {
+          setConnectionError("Failed to connect to authentication service. Please check your Supabase credentials.");
+          console.error("Supabase connection error:", error);
+        } else {
+          toast({
+            title: "Google signup failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      }
       
     } catch (error: any) {
       toast({
@@ -117,6 +155,7 @@ export default function Signup() {
         description: error.message || "An error occurred during Google signup",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -130,7 +169,20 @@ export default function Signup() {
             Enter your information to create an account
           </CardDescription>
         </CardHeader>
+        
         <CardContent className="space-y-4">
+          {connectionError && (
+            <div className="p-3 border border-destructive/50 rounded-md bg-destructive/10 text-destructive flex items-start space-x-2">
+              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium">{connectionError}</p>
+                <p className="text-xs mt-1">
+                  Make sure your VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables are correctly set.
+                </p>
+              </div>
+            </div>
+          )}
+          
           <Button 
             variant="outline" 
             className="w-full" 
@@ -208,6 +260,7 @@ export default function Signup() {
             </Button>
           </form>
         </CardContent>
+        
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-muted-foreground">
             Already have an account?{" "}

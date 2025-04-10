@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { FcGoogle } from "react-icons/fc";
-import { Mail, KeyRound } from "lucide-react";
+import { Mail, KeyRound, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 
@@ -14,11 +14,13 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setConnectionError(null);
     
     if (!email || !password) {
       toast({
@@ -37,7 +39,19 @@ export default function Login() {
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("fetch failed") || error.message.includes("network")) {
+          setConnectionError("Failed to connect to authentication service. Please check your Supabase credentials.");
+          console.error("Supabase connection error:", error);
+        } else {
+          toast({
+            title: "Login failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+        return;
+      }
       
       // Check if user has a profile, if not create one
       if (data.user) {
@@ -93,6 +107,7 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
+      setConnectionError(null);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -101,7 +116,18 @@ export default function Login() {
         },
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("fetch failed") || error.message.includes("network")) {
+          setConnectionError("Failed to connect to authentication service. Please check your Supabase credentials.");
+          console.error("Supabase connection error:", error);
+        } else {
+          toast({
+            title: "Google login failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      }
       
     } catch (error: any) {
       toast({
@@ -109,6 +135,7 @@ export default function Login() {
         description: error.message || "An error occurred during Google login",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -122,7 +149,20 @@ export default function Login() {
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
+        
         <CardContent className="space-y-4">
+          {connectionError && (
+            <div className="p-3 border border-destructive/50 rounded-md bg-destructive/10 text-destructive flex items-start space-x-2">
+              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium">{connectionError}</p>
+                <p className="text-xs mt-1">
+                  Make sure your VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables are correctly set.
+                </p>
+              </div>
+            </div>
+          )}
+          
           <Button 
             variant="outline" 
             className="w-full" 
@@ -172,6 +212,7 @@ export default function Login() {
             </Button>
           </form>
         </CardContent>
+        
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-muted-foreground">
             Don't have an account?{" "}
