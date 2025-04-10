@@ -4,32 +4,26 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, Star, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Event } from "@/types";
 
 interface EventCardProps {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  category: string;
-  image: string;
-  status: "pending" | "approved" | "rejected";
-  rating?: number;
-  attendees?: number;
+  event: Event;
 }
 
-export function EventCard({
-  id,
-  title,
-  date,
-  time,
-  location,
-  category,
-  image,
-  status,
-  rating = 0,
-  attendees = 0,
-}: EventCardProps) {
+export function EventCard({ event }: EventCardProps) {
+  const {
+    id,
+    title,
+    date,
+    time,
+    location,
+    category,
+    image,
+    status,
+    rating = 0,
+    attendees = 0,
+  } = event;
+
   return (
     <Card className="event-card overflow-hidden">
       <div className="relative">

@@ -12,7 +12,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { EventCard } from "@/components/events/EventCard";
-import { EventStatus } from "@/types";
+import { Event, EventStatus } from "@/types";
 
 // Mock event data - in a real app this would come from an API
 const mockEvents = [

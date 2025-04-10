@@ -1,4 +1,3 @@
-
 export type EventStatus = "pending" | "approved" | "rejected";
 
 export interface Event {
@@ -30,6 +29,7 @@ export interface UserProfile {
   avatar_url?: string;
   role: "user" | "admin";
   created_at?: string;
+  email?: string;
 }
 
 export interface User {

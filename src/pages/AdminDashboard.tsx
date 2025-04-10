@@ -138,7 +138,7 @@ export default function AdminDashboard() {
   
   return (
     <div className="flex flex-col md:flex-row">
-      <UserSidebar isAdmin items={[]} />
+      <UserSidebar isAdmin={true} />
       
       <div className="flex-1 p-6 md:p-8 pt-6">
         <div className="max-w-6xl mx-auto">
@@ -382,7 +382,7 @@ export default function AdminDashboard() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {recentUsers.map((userProfile: UserProfile & {email: string}) => (
+                        {recentUsers.map((userProfile) => (
                           <TableRow key={userProfile.id}>
                             <TableCell>
                               <div className="flex items-center gap-2">
