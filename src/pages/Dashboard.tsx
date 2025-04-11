@@ -10,7 +10,7 @@ import {
   CalendarDays, 
   ChevronRight, 
   Clock, 
-  LineChart, 
+  LineChart as LineChartIcon, 
   Plus, 
   Star, 
   Users
@@ -22,7 +22,7 @@ import { CreateEventModal } from "@/components/events/CreateEventModal";
 import { AuthContext } from "@/App";
 import { EventStatus } from "@/types";
 
-// Mock data - in a real app, this would come from an API
+// Mock data - this will be visible to all users
 const userEvents = [
   {
     id: "1",
@@ -51,6 +51,24 @@ const userEvents = [
     rating: 0,
     status: "pending" as EventStatus,
   },
+  {
+    id: "4",
+    title: "Advanced TypeScript Patterns",
+    date: "2025-08-12",
+    time: "9:00 AM - 11:30 AM",
+    attendees: 15,
+    rating: 4.2,
+    status: "approved" as EventStatus,
+  },
+  {
+    id: "5",
+    title: "Introduction to GraphQL",
+    date: "2025-09-03",
+    time: "3:00 PM - 5:00 PM",
+    attendees: 35,
+    rating: 4.5,
+    status: "approved" as EventStatus,
+  },
 ];
 
 const userRegistrations = [
@@ -71,6 +89,24 @@ const userRegistrations = [
     organizer: "AI Research Institute",
     ticket: "Early Bird",
     price: 4999, // cents
+  },
+  {
+    id: "3",
+    eventName: "Web Development Conference",
+    date: "2025-07-22",
+    time: "9:00 AM - 5:00 PM",
+    organizer: "WebDev Community",
+    ticket: "VIP",
+    price: 7999, // cents
+  },
+  {
+    id: "4",
+    eventName: "Product Management Masterclass",
+    date: "2025-08-14",
+    time: "10:00 AM - 2:00 PM",
+    organizer: "Product School",
+    ticket: "Regular",
+    price: 3999, // cents
   },
 ];
 
@@ -126,13 +162,13 @@ export default function Dashboard() {
                   />
                   <StatsCard 
                     title="Total Attendees"
-                    value="70"
+                    value="120"
                     description="Across all your events"
                     icon={Users}
                   />
                   <StatsCard 
                     title="Avg. Rating"
-                    value="4.8"
+                    value="4.6"
                     description="For your events"
                     icon={Star}
                     iconColor="text-yellow-500"
@@ -189,7 +225,7 @@ export default function Dashboard() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="h-[250px] flex items-center justify-center">
-                      <LineChart className="h-16 w-16 text-muted-foreground" />
+                      <LineChartIcon className="h-16 w-16 text-muted-foreground" />
                     </CardContent>
                   </Card>
                 </div>

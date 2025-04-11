@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -81,18 +80,8 @@ export default function Login() {
         description: "You've successfully logged in.",
       });
       
-      // Check if user is admin and redirect accordingly
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
-      
-      if (profileData?.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
+      // Redirect to homepage instead of dashboard
+      navigate('/');
     } catch (error: any) {
       toast({
         title: "Login failed",

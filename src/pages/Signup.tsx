@@ -112,7 +112,8 @@ export default function Signup() {
         description: "Please check your email to verify your account",
       });
       
-      navigate('/login');
+      // Redirect to homepage instead of login page
+      navigate('/');
     } catch (error: any) {
       toast({
         title: "Signup failed",

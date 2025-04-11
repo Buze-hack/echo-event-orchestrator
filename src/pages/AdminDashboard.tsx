@@ -1,140 +1,152 @@
-
-import { useState, useContext } from "react";
+import { useState } from "react";
+import { UserSidebar } from "@/components/dashboard/UserSidebar";
+import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StatsCard } from "@/components/dashboard/StatsCard";
-import { UserSidebar } from "@/components/dashboard/UserSidebar";
-import { 
-  CalendarDays, 
-  ChevronRight, 
-  Clock, 
-  LayoutDashboard,
-  Star, 
-  ThumbsUp, 
-  Users
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { AuthContext } from "@/App";
-import { UserProfile } from "@/types";
+  Clock,
+  CalendarDays,
+  Users as UsersIcon,
+  Star,
+  Search,
+  Filter,
+  Check,
+  X,
+  MoreHorizontal,
+  Calendar,
+  User as UserIcon
+} from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { UserProfile, EventStatus } from "@/types";
 
+// Mock data - in a real app, this would come from an API
 const pendingEvents = [
   {
     id: "1",
-    title: "Web Development Workshop",
-    date: "2025-06-10",
-    user_id: "user1",
-    category: "workshop",
+    title: "AI Workshop for Beginners",
+    date: "2025-06-15",
+    time: "10:00 AM",
+    organizer: "TechLearn Inc.",
     location: "Online",
-    status: "pending",
-    organizer: {
-      name: "John Smith",
-      image: "https://randomuser.me/api/portraits/men/32.jpg"
-    }
+    category: "workshop",
+    status: "pending" as EventStatus,
   },
   {
     id: "2",
-    title: "Data Science Conference",
-    date: "2025-07-15",
-    user_id: "user2",
-    category: "conference",
-    location: "Convention Center",
-    status: "pending",
-    organizer: {
-      name: "Emily Chen",
-      image: "https://randomuser.me/api/portraits/women/26.jpg"
-    }
+    title: "Data Science Bootcamp",
+    date: "2025-07-10",
+    time: "9:00 AM",
+    organizer: "DataGeeks",
+    location: "New York Convention Center",
+    category: "workshop",
+    status: "pending" as EventStatus,
   },
   {
     id: "3",
-    title: "Startup Networking Mixer",
-    date: "2025-05-22",
-    user_id: "user3",
-    category: "networking",
-    location: "Tech Hub Downtown",
-    status: "pending",
-    organizer: {
-      name: "Michael Rodriguez",
-      image: ""
-    }
+    title: "Digital Marketing Trends 2025",
+    date: "2025-08-05",
+    time: "2:00 PM",
+    organizer: "Marketing Pros",
+    location: "Online",
+    category: "conference",
+    status: "pending" as EventStatus,
+  },
+  {
+    id: "4",
+    title: "UX/UI Design Basics",
+    date: "2025-08-25",
+    time: "11:00 AM",
+    organizer: "Design Academy",
+    location: "San Francisco Tech Hub",
+    category: "workshop",
+    status: "pending" as EventStatus,
+  }
+];
+
+const recentEvents = [
+  {
+    id: "100",
+    title: "Tech Innovation Summit",
+    date: "2025-05-01",
+    organizer: "Tech Innovation Group",
+    status: "approved" as EventStatus,
+    attendees: 350,
+  },
+  {
+    id: "101",
+    title: "Startup Funding Workshop",
+    date: "2025-05-05",
+    organizer: "Venture Capital Association",
+    status: "approved" as EventStatus,
+    attendees: 120,
+  },
+  {
+    id: "102",
+    title: "Blockchain Technology Conference",
+    date: "2025-05-08",
+    organizer: "Blockchain Foundation",
+    status: "approved" as EventStatus,
+    attendees: 250,
+  },
+  {
+    id: "103",
+    title: "Sustainable Tech Meetup",
+    date: "2025-05-12",
+    organizer: "Green Tech Initiative",
+    status: "approved" as EventStatus,
+    attendees: 85,
+  },
+  {
+    id: "104",
+    title: "App Development Hackathon",
+    date: "2025-05-15",
+    organizer: "Dev Community",
+    status: "rejected" as EventStatus,
+    attendees: 0,
   },
 ];
 
-const recentUsers = [
+const recentUsers: UserProfile[] = [
   {
-    id: "1",
-    name: "Sarah Johnson",
-    email: "sarah@example.com",
+    id: "u1",
+    name: "Alex Johnson",
+    avatar_url: "https://randomuser.me/api/portraits/men/32.jpg",
+    role: "user",
+    created_at: "2025-04-01T10:23:45Z",
+    email: "alex.johnson@example.com",
+  },
+  {
+    id: "u2",
+    name: "Sophia Williams",
     avatar_url: "https://randomuser.me/api/portraits/women/44.jpg",
-    created_at: "2025-04-01",
-    role: "user"
+    role: "user",
+    created_at: "2025-04-03T15:12:33Z",
+    email: "sophia.w@example.com",
   },
   {
-    id: "2",
-    name: "David Kim",
-    email: "david@example.com",
-    avatar_url: "https://randomuser.me/api/portraits/men/22.jpg",
-    created_at: "2025-03-28",
-    role: "user"
+    id: "u3",
+    name: "Marcus Lee",
+    avatar_url: "https://randomuser.me/api/portraits/men/55.jpg",
+    role: "admin",
+    created_at: "2025-04-05T08:44:21Z",
+    email: "marcus.admin@example.com",
   },
   {
-    id: "3",
-    name: "Lisa Chen",
-    email: "lisa@example.com",
-    avatar_url: "",
-    created_at: "2025-03-25",
-    role: "user"
+    id: "u4",
+    name: "Emma Thompson",
+    avatar_url: "https://randomuser.me/api/portraits/women/22.jpg",
+    role: "user",
+    created_at: "2025-04-08T12:34:56Z",
+    email: "emma.t@example.com",
   },
 ];
 
 export default function AdminDashboard() {
-  const { toast } = useToast();
-  const { user, isAdmin } = useContext(AuthContext);
-  const [selectedTab, setSelectedTab] = useState("overview");
-  
-  // If user is not admin, this page shouldn't be accessible anyway due to
-  // the protected route in App.tsx, but adding an extra check just in case
-  if (!isAdmin) {
-    return (
-      <div className="container py-12 text-center">
-        <h1 className="text-2xl font-semibold">Access Denied</h1>
-        <p className="text-muted-foreground mt-2">
-          You do not have permission to access this page.
-        </p>
-      </div>
-    );
-  }
-  
-  const handleApprove = (eventId: string) => {
-    toast({
-      title: "Event Approved",
-      description: "The event has been approved and is now public.",
-    });
-  };
-  
-  const handleReject = (eventId: string) => {
-    toast({
-      title: "Event Rejected",
-      description: "The event has been rejected.",
-    });
-  };
-  
-  const handleMakeAdmin = (userId: string) => {
-    toast({
-      title: "Role Updated",
-      description: "User has been given admin privileges.",
-    });
-  };
+  const [activeTab, setActiveTab] = useState("overview");
   
   return (
     <div className="flex flex-col md:flex-row">
@@ -146,18 +158,13 @@ export default function AdminDashboard() {
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
               <p className="text-muted-foreground mt-1">
-                Manage events, users, and site settings.
+                Manage events, users, and platform settings.
               </p>
-            </div>
-            <div className="mt-4 md:mt-0">
-              <Badge variant="default" className="text-sm">
-                Admin User
-              </Badge>
             </div>
           </div>
           
           <div className="mb-8">
-            <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid grid-cols-3 mb-8">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="events">Events</TabsTrigger>
@@ -168,26 +175,25 @@ export default function AdminDashboard() {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <StatsCard 
                     title="Total Events"
-                    value="26"
-                    description="All time events"
+                    value="256"
+                    description="Across all categories"
                     icon={CalendarDays}
                   />
                   <StatsCard 
                     title="Pending Review"
-                    value="3"
-                    description="Events needing approval"
+                    value={pendingEvents.length.toString()}
+                    description="Events awaiting approval"
                     icon={Clock}
-                    iconColor="text-amber-500"
                   />
                   <StatsCard 
                     title="Total Users"
-                    value="247"
-                    description="Registered users"
-                    icon={Users}
+                    value="1,244"
+                    description="Registered accounts"
+                    icon={UsersIcon}
                   />
                   <StatsCard 
                     title="Avg. Rating"
-                    value="4.8"
+                    value="4.5"
                     description="Across all events"
                     icon={Star}
                     iconColor="text-yellow-500"
@@ -197,162 +203,132 @@ export default function AdminDashboard() {
                 <div className="grid gap-6 md:grid-cols-2">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Pending Approvals</CardTitle>
+                      <CardTitle>Pending Event Approvals</CardTitle>
                       <CardDescription>
-                        Recently submitted events requiring review
+                        Events awaiting your review and approval.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {pendingEvents.slice(0, 3).map((event) => (
+                        {pendingEvents.map((event) => (
                           <div key={event.id} className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-9 w-9">
-                                <AvatarImage src={event.organizer.image} />
-                                <AvatarFallback>
-                                  {event.organizer.name.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="font-medium">{event.title}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {new Date(event.date).toLocaleDateString()}
-                                </div>
+                            <div>
+                              <div className="font-medium">{event.title}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {event.date} • {event.time}
                               </div>
                             </div>
-                            <Button variant="ghost" size="sm">
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Check className="mr-2 h-4 w-4" /> Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <X className="mr-2 h-4 w-4" /> Reject
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         ))}
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => setSelectedTab("events")}
-                      >
-                        View All
+                      <Button variant="outline" className="w-full">
+                        View All Pending Events
                       </Button>
                     </CardFooter>
                   </Card>
                   
                   <Card>
                     <CardHeader>
-                      <CardTitle>Recent Users</CardTitle>
+                      <CardTitle>Recent Activity</CardTitle>
                       <CardDescription>
-                        Newly registered platform users
+                        Overview of recent events and user activity.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        {recentUsers.map((user) => (
-                          <div key={user.id} className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-9 w-9">
-                                <AvatarImage src={user.avatar_url} />
-                                <AvatarFallback>
-                                  {user.name.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="font-medium">{user.name}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {new Date(user.created_at).toLocaleDateString()}
-                                </div>
+                      <ul className="list-none space-y-4">
+                        {recentEvents.map((event) => (
+                          <li key={event.id} className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{event.title}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {event.date} • {event.organizer}
                               </div>
                             </div>
-                            <Badge variant={user.role === "admin" ? "default" : "outline"}>
-                              {user.role}
-                            </Badge>
-                          </div>
+                            <Badge variant="secondary">{event.status}</Badge>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </CardContent>
-                    <CardFooter>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => setSelectedTab("users")}
-                      >
-                        View All Users
-                      </Button>
-                    </CardFooter>
                   </Card>
                 </div>
               </TabsContent>
               
               <TabsContent value="events">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Event Approval Queue</CardTitle>
-                    <CardDescription>
-                      Review and approve or reject submitted events.
-                    </CardDescription>
+                  <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div>
+                      <CardTitle>Manage Events</CardTitle>
+                      <CardDescription>
+                        View, edit, and manage all events on the platform.
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                          type="text"
+                          placeholder="Search events..."
+                          className="pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                      <Button variant="outline">
+                        <Filter className="mr-2 h-4 w-4" /> Filter
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
                           <TableHead>Event Name</TableHead>
-                          <TableHead>Organizer</TableHead>
-                          <TableHead>Category</TableHead>
                           <TableHead>Date</TableHead>
+                          <TableHead>Organizer</TableHead>
                           <TableHead>Status</TableHead>
+                          <TableHead>Attendees</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {pendingEvents.map((event) => (
+                        {recentEvents.map((event) => (
                           <TableRow key={event.id}>
                             <TableCell className="font-medium">{event.title}</TableCell>
+                            <TableCell>{event.date}</TableCell>
+                            <TableCell>{event.organizer}</TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-6 w-6">
-                                  <AvatarImage src={event.organizer.image} />
-                                  <AvatarFallback>{event.organizer.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <span>{event.organizer.name}</span>
-                              </div>
+                              <Badge variant="secondary">{event.status}</Badge>
                             </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="capitalize">
-                                {event.category}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {new Date(event.date).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                className={cn({
-                                  "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100": event.status === "pending",
-                                  "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100": event.status === "approved",
-                                  "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100": event.status === "rejected",
-                                })}
-                              >
-                                {event.status}
-                              </Badge>
-                            </TableCell>
+                            <TableCell>{event.attendees}</TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="default"
-                                  onClick={() => handleApprove(event.id)}
-                                >
-                                  <ThumbsUp className="mr-1 h-4 w-4" />
-                                  Approve
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleReject(event.id)}
-                                >
-                                  Reject
-                                </Button>
-                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                                  <DropdownMenuItem>Delete</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -364,11 +340,26 @@ export default function AdminDashboard() {
               
               <TabsContent value="users">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>User Management</CardTitle>
-                    <CardDescription>
-                      Manage user accounts and permissions.
-                    </CardDescription>
+                  <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div>
+                      <CardTitle>Manage Users</CardTitle>
+                      <CardDescription>
+                        View, edit, and manage all registered users.
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                          type="text"
+                          placeholder="Search users..."
+                          className="pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                      <Button variant="outline">
+                        <Filter className="mr-2 h-4 w-4" /> Filter
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <Table>
@@ -377,48 +368,41 @@ export default function AdminDashboard() {
                           <TableHead>Name</TableHead>
                           <TableHead>Email</TableHead>
                           <TableHead>Role</TableHead>
-                          <TableHead>Joined</TableHead>
+                          <TableHead>Joined Date</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {recentUsers.map((userProfile) => (
-                          <TableRow key={userProfile.id}>
+                        {recentUsers.map((user) => (
+                          <TableRow key={user.id}>
                             <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarImage src={userProfile.avatar_url} />
-                                  <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                              <div className="flex items-center space-x-2">
+                                <Avatar>
+                                  <AvatarImage src={user.avatar_url} alt={user.name} />
+                                  <AvatarFallback>{user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                                 </Avatar>
-                                <span className="font-medium">{userProfile.name}</span>
+                                <span>{user.name}</span>
                               </div>
                             </TableCell>
-                            <TableCell>{userProfile.email}</TableCell>
+                            <TableCell>{user.email}</TableCell>
                             <TableCell>
-                              <Badge
-                                variant={userProfile.role === "admin" ? "default" : "outline"}
-                              >
-                                {userProfile.role}
-                              </Badge>
+                              <Badge variant="secondary">{user.role}</Badge>
                             </TableCell>
                             <TableCell>
-                              {new Date(userProfile.created_at).toLocaleDateString()}
+                              <Calendar className="mr-2 inline-block h-4 w-4 align-middle" />
+                              {new Date(user.created_at || '').toLocaleDateString()}
                             </TableCell>
                             <TableCell className="text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm">
-                                    Actions
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleMakeAdmin(userProfile.id)}>
-                                    Make Admin
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>View Profile</DropdownMenuItem>
-                                  <DropdownMenuItem className="text-red-600">
-                                    Delete Account
-                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                                  <DropdownMenuItem>Delete</DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </TableCell>

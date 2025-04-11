@@ -68,12 +68,8 @@ export default function AuthCallback() {
           userProfile = newProfile;
         }
 
-        // Check if user is admin and redirect accordingly
-        if (userProfile && userProfile.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
-        }
+        // Redirect to homepage regardless of user role
+        navigate('/');
         
         toast({
           title: "Authentication successful",
