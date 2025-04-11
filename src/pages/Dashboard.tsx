@@ -1,19 +1,17 @@
-
-import { useState, useContext } from "react";
+import React, { useState, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { SidebarNav } from "@/components/dashboard/SidebarNav";
 import { UserSidebar } from "@/components/dashboard/UserSidebar";
 import { 
-  CalendarDays, 
-  ChevronRight, 
-  Clock, 
+  CalendarDays as CalendarDaysIcon, 
+  ChevronRight as ChevronRightIcon, 
+  Clock as ClockIcon, 
   LineChart as LineChartIcon, 
-  Plus, 
-  Star, 
-  Users
+  Plus as PlusIcon, 
+  Star as StarIcon, 
+  Users as UsersIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -22,7 +20,6 @@ import { CreateEventModal } from "@/components/events/CreateEventModal";
 import { AuthContext } from "@/App";
 import { EventStatus } from "@/types";
 
-// Mock data - this will be visible to all users
 const userEvents = [
   {
     id: "1",
@@ -152,25 +149,25 @@ export default function Dashboard() {
                     title="My Events"
                     value={userEvents.length.toString()}
                     description="Events you've created"
-                    icon={CalendarDays}
+                    icon={CalendarDaysIcon}
                   />
                   <StatsCard 
                     title="Registered"
                     value={userRegistrations.length.toString()}
                     description="Events you're attending"
-                    icon={Clock}
+                    icon={ClockIcon}
                   />
                   <StatsCard 
                     title="Total Attendees"
                     value="120"
                     description="Across all your events"
-                    icon={Users}
+                    icon={UsersIcon}
                   />
                   <StatsCard 
                     title="Avg. Rating"
                     value="4.6"
                     description="For your events"
-                    icon={Star}
+                    icon={StarIcon}
                     iconColor="text-yellow-500"
                   />
                 </div>
@@ -241,7 +238,7 @@ export default function Dashboard() {
                       </CardDescription>
                     </div>
                     <Button className="mt-4 sm:mt-0 flex items-center gap-2">
-                      <Plus className="h-4 w-4" /> Create Event
+                      <PlusIcon className="h-4 w-4" /> Create Event
                     </Button>
                   </CardHeader>
                   <CardContent>
@@ -280,7 +277,7 @@ export default function Dashboard() {
                               {event.rating > 0 ? (
                                 <div className="flex items-center">
                                   {event.rating}
-                                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 ml-1" />
+                                  <StarIcon className="h-4 w-4 fill-yellow-400 text-yellow-400 ml-1" />
                                 </div>
                               ) : (
                                 "No ratings"

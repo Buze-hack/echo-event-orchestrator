@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { UserSidebar } from "@/components/dashboard/UserSidebar";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Button } from "@/components/ui/button";
@@ -8,22 +8,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Clock,
-  CalendarDays,
-  Users as UsersIcon,
-  Star,
-  Search,
-  Filter,
-  Check,
-  X,
-  MoreHorizontal,
-  Calendar,
+  Clock as ClockIcon,
+  CalendarDays as CalendarDaysIcon,
+  Users as UsersIcon, 
+  Star as StarIcon,
+  Search as SearchIcon,
+  Filter as FilterIcon,
+  Check as CheckIcon,
+  X as XIcon,
+  MoreHorizontal as MoreHorizontalIcon,
+  Calendar as CalendarIcon,
   User as UserIcon
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { UserProfile, EventStatus } from "@/types";
 
-// Mock data - in a real app, this would come from an API
 const pendingEvents = [
   {
     id: "1",
@@ -177,13 +176,13 @@ export default function AdminDashboard() {
                     title="Total Events"
                     value="256"
                     description="Across all categories"
-                    icon={CalendarDays}
+                    icon={CalendarDaysIcon}
                   />
                   <StatsCard 
                     title="Pending Review"
                     value={pendingEvents.length.toString()}
                     description="Events awaiting approval"
-                    icon={Clock}
+                    icon={ClockIcon}
                   />
                   <StatsCard 
                     title="Total Users"
@@ -195,7 +194,7 @@ export default function AdminDashboard() {
                     title="Avg. Rating"
                     value="4.5"
                     description="Across all events"
-                    icon={Star}
+                    icon={StarIcon}
                     iconColor="text-yellow-500"
                   />
                 </div>
@@ -222,15 +221,15 @@ export default function AdminDashboard() {
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="h-8 w-8 p-0">
                                   <span className="sr-only">Open menu</span>
-                                  <MoreHorizontal className="h-4 w-4" />
+                                  <MoreHorizontalIcon className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem>
-                                  <Check className="mr-2 h-4 w-4" /> Approve
+                                  <CheckIcon className="mr-2 h-4 w-4" /> Approve
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
-                                  <X className="mr-2 h-4 w-4" /> Reject
+                                  <XIcon className="mr-2 h-4 w-4" /> Reject
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -282,7 +281,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex items-center space-x-2 mt-4 sm:mt-0">
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
                           type="text"
                           placeholder="Search events..."
@@ -290,7 +289,7 @@ export default function AdminDashboard() {
                         />
                       </div>
                       <Button variant="outline">
-                        <Filter className="mr-2 h-4 w-4" /> Filter
+                        <FilterIcon className="mr-2 h-4 w-4" /> Filter
                       </Button>
                     </div>
                   </CardHeader>
@@ -321,7 +320,7 @@ export default function AdminDashboard() {
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" className="h-8 w-8 p-0">
                                     <span className="sr-only">Open menu</span>
-                                    <MoreHorizontal className="h-4 w-4" />
+                                    <MoreHorizontalIcon className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
@@ -349,7 +348,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex items-center space-x-2 mt-4 sm:mt-0">
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input
                           type="text"
                           placeholder="Search users..."
@@ -357,7 +356,7 @@ export default function AdminDashboard() {
                         />
                       </div>
                       <Button variant="outline">
-                        <Filter className="mr-2 h-4 w-4" /> Filter
+                        <FilterIcon className="mr-2 h-4 w-4" /> Filter
                       </Button>
                     </div>
                   </CardHeader>
@@ -389,7 +388,7 @@ export default function AdminDashboard() {
                               <Badge variant="secondary">{user.role}</Badge>
                             </TableCell>
                             <TableCell>
-                              <Calendar className="mr-2 inline-block h-4 w-4 align-middle" />
+                              <CalendarIcon className="mr-2 inline-block h-4 w-4 align-middle" />
                               {new Date(user.created_at || '').toLocaleDateString()}
                             </TableCell>
                             <TableCell className="text-right">
@@ -397,7 +396,7 @@ export default function AdminDashboard() {
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" className="h-8 w-8 p-0">
                                     <span className="sr-only">Open menu</span>
-                                    <MoreHorizontal className="h-4 w-4" />
+                                    <MoreHorizontalIcon className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
